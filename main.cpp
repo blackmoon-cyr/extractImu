@@ -49,7 +49,7 @@ int main()
     k4a_playback_get_next_imu_sample(playback_handle, &imu_sample);
     
     
-    double i = 66721461;
+    // double i = 66721461;
     
     
 
@@ -61,111 +61,6 @@ int main()
 
     printf("Seeking to timestamp: %d (ms)\n",
         k4a_playback_get_recording_length_usec(playback_handle));
-    
-    while (result == K4A_STREAM_RESULT_SUCCEEDED)
-    {
-        result = k4a_playback_get_next_capture(playback_handle, &capture);
-        if (result == K4A_STREAM_RESULT_SUCCEEDED)
-        {
-            
-            
-            // Process capture here
-            
-            
-            color_image = k4a_capture_get_color_image(capture);
-            if (color_image == 0)
-            {
-                printf("Failed to get color image from capture\n");
-                break;
-                
-            }
-            k4a_image_format_t format1;
-            format1 = k4a_image_get_format(color_image);
-            double time = 0;
-            time= k4a_image_get_device_timestamp_usec(color_image);
-            //cout<<"\n" <<time;
-            if (format1 != K4A_IMAGE_FORMAT_COLOR_MJPG)
-            {
-                printf("Color format not supported. Please use MJPEG\n");
-                
-            }
-            //k4a_image_format_t format = k4a_image_get_format(color_image);
-            int color_width, color_height;
-            color_width = k4a_image_get_width_pixels(color_image);
-            color_height = k4a_image_get_height_pixels(color_image);
-            if (K4A_RESULT_SUCCEEDED != k4a_image_create(K4A_IMAGE_FORMAT_COLOR_BGRA32,
-                color_width,
-                color_height,
-                color_width * 4 * (int)sizeof(uint8_t),
-                &uncompressed_color_image))
-            {
-                printf("Failed to create image buffer\n");
-                
-            }
-            tjhandle tjHandle;
-            tjHandle = tjInitDecompress();
-            if (tjDecompress2(tjInitDecompress(),
-                k4a_image_get_buffer(color_image),
-                static_cast<unsigned long>(k4a_image_get_size(color_image)),
-                k4a_image_get_buffer(uncompressed_color_image),
-                color_width,
-                0, // pitch
-                color_height,
-                TJPF_BGRA,
-                TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
-            {
-                printf("Failed to decompress color frame\n");
-                
-               
-            }
-            if (tjDestroy(tjHandle))
-            {
-                printf("Failed to destroy turboJPEG handle\n");
-            }
-
-            
-            
-            uint8_t* color_buffer = k4a_image_get_buffer(uncompressed_color_image);
-            
-         
-           
-     
-          
-           
-
-            cv::Mat color(color_height,color_width, CV_8UC4, (void*)color_buffer, cv::Mat::AUTO_STEP);
-            //namedWindow("Image", WINDOW_AUTOSIZE);
-            //imshow("Image", color);
-           
-            cv::String filename = format("%lld.png",(long long)time);
-            
-
-            //cout << cols;
-
-            cv::Mat greyMat;
-            cv::cvtColor(color, greyMat, cv::COLOR_BGR2GRAY);
-            cv::Mat resize;
-            cv::resize(greyMat, resize, Size(752, 480));
-            
-            imwrite(filename, resize);
-            
-            k4a_capture_release(capture);
-            //i=i+ 66721461;
-            
-            k4a_image_release(color_image);
-            
-            k4a_image_release(uncompressed_color_image);
-
-           
-        }
-        
-        else if (result == K4A_STREAM_RESULT_EOF)
-        {
-            // End of file reached
-            printf("not open");
-            break;
-        }
-    }
     
     i = 0;
 
